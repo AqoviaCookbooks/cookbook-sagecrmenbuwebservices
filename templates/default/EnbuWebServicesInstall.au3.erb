@@ -1,0 +1,244 @@
+#include <AutoItConstants.au3>
+#include <Date.au3>
+#RequireAdmin
+#include <ScreenCapture.au3>
+
+$WindowName = "[REGEXPTITLE:(^Enbu Webservices Framework (.*) Setup$)]"
+$errorDialogWindows = "[REGEXPTITLE:(^Installer Information$)]"
+$databaseErrorDialogWindows = "[REGEXPTITLE:(^Incorrect details$)]"
+
+Global $CrmInstanceName = "<%= node['sagecrmenbuwebservices']['application']['crm']['name'] %>"
+Global $DatabaseName = "<%= node['sagecrmenbuwebservices']['database']['database_name'] %>"
+Global $DatabaseUsername = "<%= node['sagecrmenbuwebservices']['properties']['User'] %>"
+Global $DatabasePassword = "<%= node['sagecrmenbuwebservices']['properties']['Password'] %>"
+Global $DatabaseServerHost = "<%= node['sagecrmenbuwebservices']['database']['host'] %>"
+
+$WorkingDirectory = "<%= @WorkingDirectory %>"
+$SetupFileName = "<%= @SetupFileName %>"
+
+$Command = $WorkingDirectory & "\" & $SetupFileName
+
+_ScreenCapture_Capture($WorkingDirectory & "\InstallStep1.jpg")
+
+$opt_flag = $STDIN_CHILD + $STDOUT_CHILD + $STDERR_CHILD
+
+$PID = Run($Command, $WorkingDirectory, @SW_MAXIMIZE, $opt_flag)
+
+Sleep(1000)
+WinActivate($WindowName)
+
+_ScreenCapture_Capture($WorkingDirectory & "\InstallStep2.jpg")
+
+RunInstall($WindowName)
+
+LogToOutput("Finished installing...")
+
+Exit(0)
+
+Func LogToOutput($message)
+	$currentDateTime = _DateFormat(_DateTimeFormat(_NowCalc(), 1), "yyyy-MM-ddTHH:mm:ss+00:00")
+	$formattedMesage = "[" & $currentDateTime & "] INFO: " & $message & @CRLF
+
+	ConsoleWrite($formattedMesage)
+EndFunc
+
+Func _DateFormat($Date, $style)
+	Local $hGui = GUICreate("My GUI get date", 200, 200, 800, 200)
+	Local $idDate = GUICtrlCreateDate($Date, 10, 10, 185, 20)
+	GUICtrlSendMsg($idDate, 0x1032, 0, $style)
+	Local $sReturn = GUICtrlRead($idDate)
+	GUIDelete($hGui)
+	Return $sReturn
+EndFunc
+
+Func WaitForControl($windowName, $text, $controlId, $pollDuration, $numberOfRetries)
+   LogToOutput("Waiting for control ('"&$windowName&"', '"&$text&"', '"&$controlId&"')...")
+   Local $hCtrl = 0
+   Local $counter = 1
+   While (True)
+	  If WinExists($windowName) Then
+		 $hCtrl = ControlGetHandle($windowName, $text, $controlId)
+		 If $hCtrl Then
+			LogToOutput("Found control ('"&$windowName&"', '"&$text&"', '"&$controlId&"')...")
+			Return True
+		 Else
+			$counter = $counter + 1
+			If $counter > $numberOfRetries Then
+			   LogToOutput("Failed while waiting for control ('"&$windowName&"', '"&$text&"', '"&$controlId&"')...")
+			   Return False
+			EndIf
+			LogToOutput("Sleep for now...")
+			Sleep($pollDuration)
+		 EndIf
+	  Else
+		 LogToOutput("Failed while waiting for control ('"&$windowName&"', '"&$text&"', '"&$controlId&"') as Window '"&$windowName&"' does not exist...")
+		 Return False
+	  EndIf
+   WEnd
+   LogToOutput("Failed while waiting for control ('"&$windowName&"', '"&$text&"', '"&$controlId&"')...")
+   Return False
+EndFunc
+
+Func RunInstall($windowName)
+	LogToOutput("Installing...")
+
+	$PollDuration = 500
+
+	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep1.jpg")
+
+   WinActivate($windowName)
+   WinActive($windowName)
+   WinWaitActive($windowName)
+
+	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep2.jpg")
+	LogToOutput("Click next")
+	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
+
+	If WaitForControl($windowName, "", "[TEXT:End-User License Agreement]", 250, 120) == False Then
+	   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep2b.jpg")
+	   LogToOutput("Unable to find [TEXT:End-User License Agreement]")
+	   Exit(1)
+    EndIf
+
+	If WaitForControl($windowName, "", "[CLASS:Button; TEXT:I &accept the terms in the License Agreement]", 250, 120) == False Then
+		_ScreenCapture_Capture($WorkingDirectory & "\InstallStep3b.jpg")
+		LogToOutput("Unable to find [CLASS:Button; TEXT:I &accept the terms in the License Agreement]")
+		Exit(1)
+	EndIf
+	ControlCommand($windowName, "", "[CLASS:Button; TEXT:I &accept the terms in the License Agreement]", "Check")
+
+   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep4.jpg")
+	LogToOutput("Click next")
+	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
+
+	;Text in fields is auto populated, so set the values after it is auto populated
+	Sleep(500)
+
+	If WaitForControl($windowName, "", "[TEXT:Choose CRM install]", 250, 120) == False Then
+	   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep4b.jpg")
+	   LogToOutput("Unable to find [TEXT:Choose CRM install]")
+	   Exit(1)
+    EndIf
+
+   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep5.jpg")
+
+   Sleep(500) ; Population of dropdown data
+   ControlCommand($windowName, "", "[CLASS:ComboBox; INSTANCE:1]", "SelectString", $CrmInstanceName)
+   Sleep(1000) ;Give it time to update text on screen
+
+   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep6.jpg")
+   LogToOutput("Click next")
+   ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
+
+	If WaitForControl($windowName, "", "[TEXT:SQL Database]", 250, 120) == False Then
+	   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep6b2.jpg")
+	   LogToOutput("Unable to find [TEXT:SQL Database]")
+	   Exit(1)
+    EndIf
+
+    ControlFocus($windowName, "", 2818)
+	ControlSetText($windowName, "", 2818, $DatabaseServerHost)
+	Sleep(100) ; wait for next button to be enabled
+
+	ControlFocus($windowName, "", 2848)
+	ControlSetText($windowName, "", 2848, $DatabaseName)
+	Sleep(100) ; wait for next button to be enabled
+
+    ControlFocus($windowName, "", 2849)
+	ControlSetText($windowName, "", 2849, $DatabaseUsername)
+	Sleep(100) ; wait for next button to be enabled
+
+	ControlFocus($windowName, "", 2851)
+	ControlSetText($windowName, "", 2851, $DatabasePassword)
+	Sleep(100) ; wait for next button to be enabled
+
+    ControlFocus($windowName, "", 2818)
+	Sleep(500) ; wait for next button to be enabled
+
+	If WinExists($databaseErrorDialogWindows) Then
+	   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep6c.jpg")
+	   LogToOutput("Incorrect details for database")
+	   Exit(1)
+    EndIf
+
+   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep7.jpg")
+	LogToOutput("Click next")
+	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
+
+	If WaitForControl($windowName, "", "[TEXT:IIS Stop]", 250, 120) == False Then
+	   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep7b.jpg")
+	   LogToOutput("Unable to find [TEXT:IIS Stop]")
+	   Exit(1)
+    EndIf
+
+   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep8.jpg")
+	LogToOutput("Click next")
+	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
+
+   If WaitForControl($windowName, "", "[TEXT:Ready to Install]", 250, 120) == False Then
+	   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep8b.jpg")
+	   LogToOutput("Unable to find [TEXT:Ready to Install]")
+	   Exit(1)
+    EndIf
+
+   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep9.jpg")
+	LogToOutput("Click install")
+	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Install]")
+
+	$waiting = True
+	$counter = 1
+
+   LogToOutput("Start looping until install is done")
+	While ($waiting)
+		If WinExists($errorDialogWindows) Then
+		    LogToOutput("Error Dialog exists - " & $errorDialogWindows )
+			_ScreenCapture_Capture($WorkingDirectory & "\InstallStep25.jpg")
+
+			$shouldOverwriteVirtualDirectory = ControlGetHandle($errorDialogWindows, "", 41)
+			If $shouldOverwriteVirtualDirectory Then
+			   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep25a1.jpg")
+				LogToOutput("Click Yes")
+				ControlClick($errorDialogWindows, "", 41)
+
+			   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep25a2.jpg")
+			EndIf
+		EndIf
+
+		 If WinExists($windowName) Then
+			LogToOutput("Window exists - " & $windowName)
+			_ScreenCapture_Capture($WorkingDirectory & "\InstallStep28.jpg")
+
+
+		    $installationCompleted = ControlGetHandle($windowName, "", "[CLASS:Button; TEXT:&Finish]")
+			LogToOutput("Checked for $installationCompleted - " & $installationCompleted )
+		    If $installationCompleted Then
+			   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep28c1.jpg")
+
+			   $viewDocumentationCheckbox = WaitForControl($windowName, "", "[CLASS:Button; TEXT:View Documentation]", 250, 4)
+			   If $viewDocumentationCheckbox == True Then
+				  LogToOutput("View the documentation checkbox - " & $viewDocumentationCheckbox )
+				  _ScreenCapture_Capture($WorkingDirectory & "\InstallStep28c3.jpg")
+				  ;[CLASS:Button; INSTANCE:2]
+				  ;View Documentation
+				  ControlCommand($windowName, "", "[CLASS:Button; TEXT:View Documentation]", "UnCheck", "")
+
+				  LogToOutput("Click Finish")
+				  ControlClick($windowName, "", "[CLASS:Button; TEXT:&Finish]")
+				  $waiting = False
+			   EndIf
+			EndIf
+		 EndIf
+
+		 $counter = $counter + 1
+		 If $counter > 1200 Then
+			LogToOutput("Something went wrong during installation process")
+			Exit(1)
+		 Else
+			Sleep(500)
+		 EndIf
+	WEnd
+
+	WinWaitClose($windowName, "", 30)
+
+	Return True
+EndFunc
