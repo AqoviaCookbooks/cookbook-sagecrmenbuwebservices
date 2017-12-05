@@ -55,4 +55,5 @@ default['sagecrmenbuwebservices']['database']['database_name'] = node['sagecrm']
 default['sagecrmenbuwebservices']['properties']['User'] = username
 default['sagecrmenbuwebservices']['properties']['Password'] = node['sagecrmenbuwebservices']['service']['password']
 default['sagecrmenbuwebservices']['database']['host'] = node['sagecrm']['database']['host'] || '127.0.0.1'
+default['sagecrmenbuwebservices']['usex3interfaces'] = true
 

@@ -12,6 +12,7 @@ Global $DatabaseName = "<%= node['sagecrmenbuwebservices']['database']['database
 Global $DatabaseUsername = "<%= node['sagecrmenbuwebservices']['properties']['User'] %>"
 Global $DatabasePassword = "<%= node['sagecrmenbuwebservices']['properties']['Password'] %>"
 Global $DatabaseServerHost = "<%= node['sagecrmenbuwebservices']['database']['host'] %>"
+Global $UseX3Interfaces = <%= node['sagecrmenbuwebservices']['usex3interfaces'] ? 'True' : 'False' %>
 
 $WorkingDirectory = "<%= @WorkingDirectory %>"
 $SetupFileName = "<%= @SetupFileName %>"
@@ -86,9 +87,9 @@ Func RunInstall($windowName)
 
 	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep1.jpg")
 
-   WinActivate($windowName)
-   WinActive($windowName)
-   WinWaitActive($windowName)
+	WinActivate($windowName)
+	WinActive($windowName)
+	WinWaitActive($windowName)
 
 	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep2.jpg")
 	LogToOutput("Click next")
@@ -107,7 +108,7 @@ Func RunInstall($windowName)
 	EndIf
 	ControlCommand($windowName, "", "[CLASS:Button; TEXT:I &accept the terms in the License Agreement]", "Check")
 
-   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep4.jpg")
+	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep4.jpg")
 	LogToOutput("Click next")
 	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
 
@@ -120,15 +121,15 @@ Func RunInstall($windowName)
 	   Exit(1)
     EndIf
 
-   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep5.jpg")
+	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep5.jpg")
 
-   Sleep(500) ; Population of dropdown data
-   ControlCommand($windowName, "", "[CLASS:ComboBox; INSTANCE:1]", "SelectString", $CrmInstanceName)
-   Sleep(1000) ;Give it time to update text on screen
+	Sleep(500) ; Population of dropdown data
+	ControlCommand($windowName, "", "[CLASS:ComboBox; INSTANCE:1]", "SelectString", $CrmInstanceName)
+	Sleep(1000) ;Give it time to update text on screen
 
-   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep6.jpg")
-   LogToOutput("Click next")
-   ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
+	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep6.jpg")
+	LogToOutput("Click next")
+	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
 
 	If WaitForControl($windowName, "", "[TEXT:SQL Database]", 250, 120) == False Then
 	   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep6b2.jpg")
@@ -161,7 +162,7 @@ Func RunInstall($windowName)
 	   Exit(1)
     EndIf
 
-   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep7.jpg")
+	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep7.jpg")
 	LogToOutput("Click next")
 	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
 
@@ -171,24 +172,30 @@ Func RunInstall($windowName)
 	   Exit(1)
     EndIf
 
-   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep8.jpg")
+	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep8.jpg")
 	LogToOutput("Click next")
 	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Next >]")
 
-   If WaitForControl($windowName, "", "[TEXT:Ready to Install]", 250, 120) == False Then
+	If WaitForControl($windowName, "", "[TEXT:Ready to Install]", 250, 120) == False Then
 	   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep8b.jpg")
 	   LogToOutput("Unable to find [TEXT:Ready to Install]")
 	   Exit(1)
-    EndIf
+	EndIf
+	
+	If $UseX3Interfaces == True Then
+	   ControlCommand($windowName, "", "[CLASS:Button; TEXT:Install X3 Interfaces]", "Check")
+	Else
+	   ControlCommand($windowName, "", "[CLASS:Button; TEXT:Install X3 Interfaces]", "Uncheck")
+	EndIf	
 
-   _ScreenCapture_Capture($WorkingDirectory & "\InstallStep9.jpg")
+	_ScreenCapture_Capture($WorkingDirectory & "\InstallStep9.jpg")
 	LogToOutput("Click install")
 	ControlClick($windowName, "", "[CLASS:Button; TEXT:&Install]")
 
 	$waiting = True
 	$counter = 1
 
-   LogToOutput("Start looping until install is done")
+	LogToOutput("Start looping until install is done")
 	While ($waiting)
 		If WinExists($errorDialogWindows) Then
 		    LogToOutput("Error Dialog exists - " & $errorDialogWindows )
