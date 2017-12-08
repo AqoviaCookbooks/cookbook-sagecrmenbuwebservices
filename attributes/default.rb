@@ -17,10 +17,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-default['sagecrmenbuwebservices']['filename'] = 'Enbu Webservices Framework 2.2 - beta'
+default['sagecrmenbuwebservices']['filename'] = 'Enbu Webservices Framework 2.2'
 default['sagecrmenbuwebservices']['filename'] = 'exe'
 default['sagecrmenbuwebservices']['url'] = 'http://www.yourserver.com/' + node['sagecrmenbuwebservices']['filename'] + '.' + node['sagecrmenbuwebservices']['filename'] 
-default['sagecrmenbuwebservices']['checksum'] = '6778f82ba98ad683b9bb1882beae0cd44a23c606113d76a480b1cfa9d78601b9'
+default['sagecrmenbuwebservices']['checksum'] = '49ca95bfb041a5501a27d82435d6dafb4ec37c7bf0a2c28d76d01cfcf3e43e66'
 default['sagecrmenbuwebservices']['home'] = "#{Chef::Config['file_cache_path']}/#{node['sagecrmenbuwebservices']['filename']}/#{node['sagecrmenbuwebservices']['checksum']}"
 default['sagecrmenbuwebservices']['path'] = 'C:\Program Files (x86)\Sage\CRM\CRM\WWWRoot\CustomPages\Enbu\Framework'
 
