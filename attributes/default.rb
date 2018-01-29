@@ -32,7 +32,7 @@ default['sagecrmenbuwebservices']['application']['enbuwebservices']['physical_pa
 default['sagecrmenbuwebservices']['service']['account'] = node['sagecrm']['service']['account'] || '.\SageCRM' # e.g. SageCRM. This account is used to access the database server, so ensure that database permission have been configured. This account is used to run service, so ensure that it has the correct permissions on each node. If using multiple nodes, active directory is required.
 default['sagecrmenbuwebservices']['service']['password'] = node['sagecrm']['service']['password'] || 'P@ssw0rd' # e.g. P@ssw0rd. This is the password to use if creating a windows account locally to use.
 default['sagecrmenbuwebservices']['installaccount']['account'] = node['sagecrm']['installaccount']['account'] ||  node['sagecrmenbuwebservices']['service']['account']
-default['sagecrmenbuwebservices']['installaccount']['password'] = ['sagecrm']['installaccount']['password'] || node['sagecrmenbuwebservices']['service']['password']
+default['sagecrmenbuwebservices']['installaccount']['password'] = node['sagecrm']['installaccount']['password'] || node['sagecrmenbuwebservices']['service']['password']
 
 username = node['sagecrmenbuwebservices']['service']['account']
 domain = ""
