@@ -21,23 +21,6 @@ if node['sagecrmenbuwebservices']['service']['password'] == ''
   raise 'Please configure Sage CRM Enbu Webservices service_account_password attribute'
 end
 
-username = node['sagecrmenbuwebservices']['service']['account']
-domain = ''
-
-if username.include? '\\'
-  domain = username.split('\\')[0]
-  username = username.split('\\')[1]
-end
-
-if username.include? '@'
-  domain = username.split('@')[1]
-  username = username.split('@')[0]
-end
-
-if domain == '' || domain == '.'
-  domain = node['hostname']
-end
-
 ::Chef::Recipe.send(:include, Windows::Helper)
 
 working_directory = File.join(Chef::Config['file_cache_path'], '/sagecrmenbuwebservices')

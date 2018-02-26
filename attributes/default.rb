@@ -25,7 +25,7 @@ default['sagecrmenbuwebservices']['home'] = "#{Chef::Config['file_cache_path']}/
 default['sagecrmenbuwebservices']['path'] = 'C:\Program Files (x86)\Sage\CRM\CRM\WWWRoot\CustomPages\Enbu\Framework'
 
 default['sagecrmenbuwebservices']['application']['crm']['name'] = node['sagecrm']['application']['crm']['name'] || 'CRM'
-default['sagecrmenbuwebservices']['instance']['install_dir'] = node['sagecrm']['instance']['install_dir']  || 'C:\\Program Files (x86)\\Sage\\CRM\\'
+default['sagecrmenbuwebservices']['instance']['install_dir'] = node['sagecrm']['instance']['install_dir'] || 'C:\\Program Files (x86)\\Sage\\CRM\\'
 default['sagecrmenbuwebservices']['application']['crm']['physical_path'] = node['sagecrm']['application']['crm']['physical_path'] || "#{node['sagecrmenbuwebservices']['instance']['install_dir']}#{node['sagecrmenbuwebservices']['application']['crm']['name']}\\WWWRoot"
 default['sagecrmenbuwebservices']['application']['enbuwebservices']['physical_path'] = "#{node['sagecrmenbuwebservices']['application']['crm']['physical_path']}\\CustomPages\\Enbu\\Framework"
 
@@ -35,21 +35,9 @@ default['sagecrmenbuwebservices']['installaccount']['account'] = node['sagecrm']
 default['sagecrmenbuwebservices']['installaccount']['password'] = node['sagecrm']['installaccount']['password'] || node['sagecrmenbuwebservices']['service']['password']
 
 username = node['sagecrmenbuwebservices']['service']['account']
-domain = ''
 
-if username.include? '\\'
-  domain = username.split('\\')[0]
-  username = username.split('\\')[1]
-end
-
-if username.include? '@'
-  domain = username.split('@')[1]
-  username = username.split('@')[0]
-end
-
-if domain == '' || domain == '.'
-  domain = node['hostname']
-end
+username = username.split('\\')[1] if username.include? '\\'
+username = username.split('@')[0] if username.include? '@'
 
 default['sagecrmenbuwebservices']['database']['database_name'] = node['sagecrm']['database']['database_name'] || 'CRM'
 default['sagecrmenbuwebservices']['properties']['User'] = username
